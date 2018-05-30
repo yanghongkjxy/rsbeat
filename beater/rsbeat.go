@@ -32,8 +32,18 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 	logp.Info("config.slowerThan: %v", config.SlowerThan)
 	var poolList = make(map[string]*redis.Pool)
 	for _, ipPort := range config.Redis {
-		poolList[ipPort] = poolInit(ipPort, config.SlowerThan)
-		logp.Info("redis: %s", ipPort)
+		//poolList[ipPort] = poolInit(ipPort, config.SlowerThan)
+		//logp.Info("redis: %s", ipPort)
+		redisCfg := strings.Split(ipPort, ":")
+		pwd := ""
+		hostPort := ipPort
+		if len(redisCfg) == 3 {
+			pwd = redisCfg[2]
+			hostPort = redisCfg[0] + ":" + redisCfg[1]
+		}
+		poolList[hostPort] = poolInit(hostPort, pwd, config.SlowerThan)
+
+		logp.Info("redis: %s", hostPort)
 	}
 
 	bt := &Rsbeat{
