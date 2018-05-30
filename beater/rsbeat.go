@@ -137,7 +137,7 @@ func (bt *Rsbeat) redisc(beatname string, init bool, c redis.Conn, ipPort string
 	}
 }
 
-func poolInit(server string, slowerThan int) *redis.Pool {
+func poolInit(server string, pwd string,slowerThan int) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     3,
 		MaxActive:   3,
@@ -147,6 +147,13 @@ func poolInit(server string, slowerThan int) *redis.Pool {
 			if err != nil {
 				logp.Err("redis: error occurs when connect %v", err.Error())
 				return nil, err
+			}
+			if "" != pwd {
+
+				if _, err := c.Do("AUTH", pwd); err != nil {
+					c.Close()
+					return nil, err
+				}
 			}
 			c.Send("MULTI")
 			c.Send("CONFIG", "SET", "slowlog-log-slower-than", slowerThan)
